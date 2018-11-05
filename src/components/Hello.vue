@@ -1,37 +1,48 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
+  <div>
+    <b-card class="text-center">
+      <b-form @submit="onSubmit" @reset="onReset" v-if="show">
+        <b-form-group id="exampleInputGroup3"
+                      label="How many employees?:"
+                      label-for="exampleInput3">
+          <b-form-select id="exampleInput3"
+                        :options="employees"
+                        required
+                        v-model="form.employee">
+          </b-form-select>
+        </b-form-group>
+      </b-form>
+    </b-card>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'hello',
   data () {
     return {
-      msg: 'Foodtruck'
+      form: {
+        employee: null
+      },
+      employees: [
+        { text: 'Select One', value: null },
+        '1', '2', '3'
+      ],
+      show: true
+    }
+  },
+  methods: {
+    onSubmit (evt) {
+      evt.preventDefault();
+      alert(JSON.stringify(this.form));
+    },
+    onReset (evt) {
+      evt.preventDefault();
+      /* Reset our form values */
+      this.form.employee = null;
+      /* Trick to reset/clear native browser form validation state */
+      this.show = false;
+      this.$nextTick(() => { this.show = true });
     }
   }
 }
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-h1, h2 {
-  font-weight: normal;
-}
-
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-
-a {
-  color: #42b983;
-}
-</style>
