@@ -114,7 +114,7 @@ export default{
             }
         });
         return filter;
-  }
+  },
 
   getSalesByHour(hour){
     const sales = this.getSales();
@@ -125,5 +125,11 @@ export default{
             }
         });
         return filter;
+  },
+
+  getLambda(hour){
+    const sales = this.getSalesByHour(hour);
+    let lambda = sales.length / 60; //cantidad de clientes que llegaron en esa hora (60 minutos)
+    return lambda;
   }
 }

@@ -1,7 +1,7 @@
 <template>
   <div>
     <b-card class="text-center">
-      <b-form @submit="onSubmit" @reset="onReset" v-if="show">
+      <b-form v-if="show">
         <b-form-group id="exampleInputGroup3"
                       label="How many employees ?:"
                       label-for="exampleInput3">
@@ -20,18 +20,23 @@
                         v-model="form.hour">
           </b-form-select>
         </b-form-group>
+        <div v-if="lambda != null">
+          {{ lambda }}
+        </div>
       </b-form>
     </b-card>
   </div>
 </template>
 
 <script>
+import salesService from '../services/salesService';
 export default {
   data () {
     return {
       form: {
         hour: null,
-        employee: null
+        employee: null,
+        lambda: null
       },
       employees: [
         { text: 'Select the number of employees', value: null },
@@ -44,20 +49,15 @@ export default {
       show: true
     }
   },
-  methods: {
-    onSubmit (evt) {
-      evt.preventDefault();
-      alert(JSON.stringify(this.form));
-    },
-    onReset (evt) {
-      evt.preventDefault();
-      /* Reset our form values */
-      this.form.employee = null;
-      this.form.hour = null;
-      /* Trick to reset/clear native browser form validation state */
-      this.show = false;
-      this.$nextTick(() => { this.show = true });
+  computed:{
+    updateLambda(hour){
+        if(hour != null){
+          this.lambda = salesService.getLambda(hour);
+        }
     }
+  },
+  methods: {
+
   }
 }
 </script>
