@@ -135,19 +135,29 @@ export default{
 
   getProbabilityOfWaiting(hour, employees, mu){
     const lambda = this.getLambda(hour);
+    const traficFactor = lambda / mu;
     if(employees == 1){
-        return lambda / mu;
-    }else{
-        return null;
+        return traficFactor;
+    }
+    if(employees == 2){
+        return ((traficFactor ^ 2) / 2) * (2 / (2 - traficFactor)) * (1 - traficFactor);
+    }
+    if(employees == 3){
+        return ((traficFactor ^ 3) / 6) * (3 / (3 - traficFactor)) * (1 - traficFactor);
     }
   },
 
   getProbabilityOfNoUnits(hour, employees, mu){
     const lambda = this.getLambda(hour);
+    const traficFactor = lambda / mu;
     if(employees == 1){
-        return 1 - (lambda / mu);
-    }else{
-        return null;
+        return 1 - traficFactor;
+    }
+    if (employees == 2) {
+        return 1 / (((2 * traficFactor ^ 2 ) / (2 * (2 - traficFactor))) + (1 + traficFactor));
+    }
+    if (employees == 3) {
+        return 1 / (((3 * traficFactor ^ 3) / (6 * ( 3 - traficFactor))) + (1 + traficFactor + ((traficFactor ^ 2 ) / 2)));
     }
   },
 
@@ -195,6 +205,6 @@ export default{
     }else{
         return null;
     }
-  },
+  }
 
 }
