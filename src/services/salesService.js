@@ -133,8 +133,6 @@ export default{
     return lambda;
   },
 
-  //Probabilidad de que las unidades que llegan tengan que
-  //esperar para ser atendidas
   getProbabilityOfWaiting(hour, employees, mu){
     const lambda = this.getLambda(hour);
     if(employees == 1){
@@ -142,9 +140,8 @@ export default{
     }else{
         return null;
     }
-  }
+  },
 
-  //Probabilidad de que no haya unidades en el sistema (P0) 
   getProbabilityOfNoUnits(hour, employees, mu){
     const lambda = this.getLambda(hour);
     if(employees == 1){
@@ -152,5 +149,52 @@ export default{
     }else{
         return null;
     }
-  }
+  },
+
+  getProbabilityOfKUnit(hour, employees, mu, k){
+    const lambda = this.getLambda(hour);
+    if(employees == 1){
+        const i = k + 1;
+        return (lambda / mu) ^ i;
+    }else{
+        return null;
+    }
+  },
+
+  getAverageOfUnitsOnQueue(hour, employees, mu){
+    const lambda = this.getLambda(hour);
+    if(employees == 1){
+        return (lambda ^ 2) / (mu * (mu - lambda));
+    }else{
+        return null;
+    }
+  },
+
+  getAverageOfUnitsOnSystem(hour, employees, mu){
+    const lambda = this.getLambda(hour);
+    if(employees == 1){
+        return lambda / (mu - lambda);
+    }else{
+        return null;
+    }
+  },
+
+  getAverageTimeOfWaitingOnQueue(hour, employees, mu){
+    const lambda = this.getLambda(hour);
+    if(employees == 1){
+        return lambda / (mu * (mu - lambda))
+    }else{
+        return null;
+    }
+  },
+
+  getAverageTimeOfWaitingOnSystem(hour, employees, mu){
+    const lambda = this.getLambda(hour);
+    if(employees == 1){
+        return 1 / (mu - lambda);
+    }else{
+        return null;
+    }
+  },
+
 }
