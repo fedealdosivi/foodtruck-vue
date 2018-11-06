@@ -127,6 +127,15 @@ export default{
         return filter;
   },
 
+  rFact(num){
+    if (num === 0){
+        return 1; 
+    }
+    else{ 
+        return num * rFact( num - 1 ); 
+    }
+  },
+
   getLambda(hour){
     const sales = this.getSalesByHour(hour);
     let lambda = sales.length / 60; //cantidad de clientes que llegaron en esa hora (60 minutos)
@@ -163,29 +172,37 @@ export default{
 
   getProbabilityOfKUnit(hour, employees, mu, k){
     const lambda = this.getLambda(hour);
+    const traficFactor = (lambda / mu)
     if(employees == 1){
         const i = k + 1;
-        return (lambda / mu) ^ i;
-    }else{
-        return null;
+        return traficFactor ^ i;
+    }
+    if(employees == 2){
+        return ((traficFactor ^ k) / this.rFact(k)) * (k / (k - traficFactor)) * (1 - traficFactor);
     }
   },
 
   getAverageOfUnitsOnQueue(hour, employees, mu){
     const lambda = this.getLambda(hour);
+    const traficFactor = lambda / mu;
     if(employees == 1){
         return (lambda ^ 2) / (mu * (mu - lambda));
-    }else{
-        return null;
+    }
+    if (employees == 2) {
+        return ((traficFactor ^ (employees + 1)) / (((employees - 1) * employees) * ((employees - traficFactor)^2))) * (1 - traficFactor);
+    }
+    if (employees == 3) {
+        return ((traficFactor ^ (employees + 1)) / (((employees - 1) * (employees - 2) * employees) * ((employees - traficFactor)^2))) * (1 - traficFactor);
     }
   },
 
   getAverageOfUnitsOnSystem(hour, employees, mu){
     const lambda = this.getLambda(hour);
+    const traficFactor = lambda / mu;
     if(employees == 1){
         return lambda / (mu - lambda);
     }else{
-        return null;
+        return (getAverageOfUnitsOnQueue(hour, employees, mu)) + traficFactor;
     }
   },
 
@@ -194,7 +211,7 @@ export default{
     if(employees == 1){
         return lambda / (mu * (mu - lambda))
     }else{
-        return null;
+        return (getAverageOfUnitsOnQueue(hour, employees, mu) / lambda);
     }
   },
 
@@ -203,7 +220,7 @@ export default{
     if(employees == 1){
         return 1 / (mu - lambda);
     }else{
-        return null;
+        return (getAverageOfUnitsOnSystem(hour, employees, mu) / lambda);
     }
   }
 
