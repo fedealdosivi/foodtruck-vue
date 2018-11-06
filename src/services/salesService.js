@@ -131,5 +131,26 @@ export default{
     const sales = this.getSalesByHour(hour);
     let lambda = sales.length / 60; //cantidad de clientes que llegaron en esa hora (60 minutos)
     return lambda;
+  },
+
+  //Probabilidad de que las unidades que llegan tengan que
+  //esperar para ser atendidas
+  getProbabilityOfWaiting(hour, employees, mu){
+    const lambda = this.getLambda(hour);
+    if(employees == 1){
+        return lambda / mu;
+    }else{
+        return null;
+    }
+  }
+
+  //Probabilidad de que no haya unidades en el sistema (P0) 
+  getProbabilityOfNoUnits(hour, employees, mu){
+    const lambda = this.getLambda(hour);
+    if(employees == 1){
+        return 1 - (lambda / mu);
+    }else{
+        return null;
+    }
   }
 }
