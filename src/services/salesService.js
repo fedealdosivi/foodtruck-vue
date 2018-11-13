@@ -143,85 +143,114 @@ export default{
   },
 
   getProbabilityOfWaiting(hour, employees, mu){
-    const lambda = this.getLambda(hour);
-    const traficFactor = lambda / mu;
-    if(employees == 1){
-        return traficFactor;
+    let lambda = this.getLambda(hour);
+    let traficFactor = lambda / mu;
+    let result = 0;
+    switch(employees){
+        default:
+            result = traficFactor;
+            break;
+
+        case 2:
+            result = ((traficFactor ^ 2) / 2) * (2 / (2 - traficFactor)) * (1 - traficFactor);
+            break;
+
+        case 3:
+            result = ((traficFactor ^ 3) / 6) * (3 / (3 - traficFactor)) * (1 - traficFactor);
+            break;
     }
-    if(employees == 2){
-        return ((traficFactor ^ 2) / 2) * (2 / (2 - traficFactor)) * (1 - traficFactor);
-    }
-    if(employees == 3){
-        return ((traficFactor ^ 3) / 6) * (3 / (3 - traficFactor)) * (1 - traficFactor);
-    }
+    return result;
   },
 
   getProbabilityOfNoUnits(hour, employees, mu){
-    const lambda = this.getLambda(hour);
-    const traficFactor = lambda / mu;
-    if(employees == 1){
-        return 1 - traficFactor;
+    let lambda = this.getLambda(hour);
+    let traficFactor = lambda / mu;
+    let result = 0;
+    switch(employees){
+        default:
+            result = 1 - traficFactor;
+            break;
+
+        case 2:
+            result = 1 / (((2 * traficFactor ^ 2 ) / (2 * (2 - traficFactor))) + (1 + traficFactor));
+            break;
+
+        case 3:
+            result = 1 / (((3 * traficFactor ^ 3) / (6 * ( 3 - traficFactor))) + (1 + traficFactor + ((traficFactor ^ 2 ) / 2)));
+            break;
     }
-    if (employees == 2) {
-        return 1 / (((2 * traficFactor ^ 2 ) / (2 * (2 - traficFactor))) + (1 + traficFactor));
-    }
-    if (employees == 3) {
-        return 1 / (((3 * traficFactor ^ 3) / (6 * ( 3 - traficFactor))) + (1 + traficFactor + ((traficFactor ^ 2 ) / 2)));
-    }
+    return result;
   },
 
   getProbabilityOfKUnit(hour, employees, mu, k){
-    const lambda = this.getLambda(hour);
-    const traficFactor = (lambda / mu)
-    if(employees == 1){
-        const i = k + 1;
-        return traficFactor ^ i;
+    let lambda = this.getLambda(hour);
+    let traficFactor = (lambda / mu);
+    let result = 0;
+    switch(employees){
+        default:
+            let i = k + 1;
+            result = traficFactor ^ i;
+        break;
+
+        case 2:
+            result = ((traficFactor ^ k) / this.rFact(k)) * (k / (k - traficFactor)) * (1 - traficFactor);
+        break;
     }
-    if(employees == 2){
-        return ((traficFactor ^ k) / this.rFact(k)) * (k / (k - traficFactor)) * (1 - traficFactor);
-    }
+    return result;
   },
 
   getAverageOfUnitsOnQueue(hour, employees, mu){
-    const lambda = this.getLambda(hour);
-    const traficFactor = lambda / mu;
-    if(employees == 1){
-        return (lambda ^ 2) / (mu * (mu - lambda));
+    let lambda = this.getLambda(hour);
+    let traficFactor = lambda / mu;
+    let result = 0;
+    switch(employees){
+        default:
+            result = (lambda ^ 2) / (mu * (mu - lambda));
+            break;
+
+        case 2:
+            result = ((traficFactor ^ (employees + 1)) / (((employees - 1) * employees) * ((employees - traficFactor)^2))) * (1 - traficFactor);
+            break;
+
+        case 3:
+            result = ((traficFactor ^ (employees + 1)) / (((employees - 1) * (employees - 2) * employees) * ((employees - traficFactor)^2))) * (1 - traficFactor);
+            break;
     }
-    if (employees == 2) {
-        return ((traficFactor ^ (employees + 1)) / (((employees - 1) * employees) * ((employees - traficFactor)^2))) * (1 - traficFactor);
-    }
-    if (employees == 3) {
-        return ((traficFactor ^ (employees + 1)) / (((employees - 1) * (employees - 2) * employees) * ((employees - traficFactor)^2))) * (1 - traficFactor);
-    }
+    return result;
   },
 
   getAverageOfUnitsOnSystem(hour, employees, mu){
-    const lambda = this.getLambda(hour);
-    const traficFactor = lambda / mu;
+    let lambda = this.getLambda(hour);
+    let traficFactor = lambda / mu;
+    let result = 0;
     if(employees == 1){
-        return lambda / (mu - lambda);
+        result = lambda / (mu - lambda);
     }else{
-        return (getAverageOfUnitsOnQueue(hour, employees, mu)) + traficFactor;
+        result = (getAverageOfUnitsOnQueue(hour, employees, mu)) + traficFactor;
     }
+    return result;
   },
 
   getAverageTimeOfWaitingOnQueue(hour, employees, mu){
-    const lambda = this.getLambda(hour);
+    let lambda = this.getLambda(hour);
+    let result = 0;
     if(employees == 1){
-        return lambda / (mu * (mu - lambda))
+        result = lambda / (mu * (mu - lambda))
     }else{
-        return (getAverageOfUnitsOnQueue(hour, employees, mu) / lambda);
+        result = (getAverageOfUnitsOnQueue(hour, employees, mu) / lambda);
     }
+    return result;
   },
 
   getAverageTimeOfWaitingOnSystem(hour, employees, mu){
-    const lambda = this.getLambda(hour);
+    let lambda = this.getLambda(hour);
+    let result = 0;
     if(employees == 1){
-        return 1 / (mu - lambda);
+        result = 1 / (mu - lambda);
     }else{
-        return (getAverageOfUnitsOnSystem(hour, employees, mu) / lambda);
+        result = (getAverageOfUnitsOnSystem(hour, employees, mu) / lambda);
     }
+    return result;
   }
 
 }
