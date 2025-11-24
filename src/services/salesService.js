@@ -128,11 +128,11 @@ export default{
   },
 
   rFact(num){
-    if (num === 0){
-        return 1; 
+    if (num === 0 || num === 1){
+        return 1;
     }
-    else{ 
-        return num * rFact( num - 1 ); 
+    else{
+        return num * this.rFact(num - 1);
     }
   },
 
@@ -146,17 +146,23 @@ export default{
     let lambda = this.getLambda(hour);
     let traficFactor = lambda / mu;
     let result = 0;
+    let P0 = this.getProbabilityOfNoUnits(hour, employees, mu);
+
     switch(employees){
-        default:
+        case 1:
             result = traficFactor;
             break;
 
         case 2:
-            result = ((traficFactor ^ 2) / 2) * (2 / (2 - traficFactor)) * (1 - traficFactor);
+            result = (Math.pow(traficFactor, 2) / 2) * (2 / (2 - traficFactor)) * P0;
             break;
 
         case 3:
-            result = ((traficFactor ^ 3) / 6) * (3 / (3 - traficFactor)) * (1 - traficFactor);
+            result = (Math.pow(traficFactor, 3) / 6) * (3 / (3 - traficFactor)) * P0;
+            break;
+
+        default:
+            result = traficFactor;
             break;
     }
     return result;
@@ -166,17 +172,22 @@ export default{
     let lambda = this.getLambda(hour);
     let traficFactor = lambda / mu;
     let result = 0;
+
     switch(employees){
-        default:
+        case 1:
             result = 1 - traficFactor;
             break;
 
         case 2:
-            result = 1 / (((2 * traficFactor ^ 2 ) / (2 * (2 - traficFactor))) + (1 + traficFactor));
+            result = 1 / (((2 * Math.pow(traficFactor, 2)) / (2 * (2 - traficFactor))) + (1 + traficFactor));
             break;
 
         case 3:
-            result = 1 / (((3 * traficFactor ^ 3) / (6 * ( 3 - traficFactor))) + (1 + traficFactor + ((traficFactor ^ 2 ) / 2)));
+            result = 1 / (((3 * Math.pow(traficFactor, 3)) / (6 * (3 - traficFactor))) + (1 + traficFactor + (Math.pow(traficFactor, 2) / 2)));
+            break;
+
+        default:
+            result = 1 - traficFactor;
             break;
     }
     return result;
@@ -186,15 +197,32 @@ export default{
     let lambda = this.getLambda(hour);
     let traficFactor = (lambda / mu);
     let result = 0;
+    let P0 = this.getProbabilityOfNoUnits(hour, employees, mu);
+
     switch(employees){
-        default:
-            let i = k + 1;
-            result = traficFactor ^ i;
-        break;
+        case 1:
+            result = Math.pow(traficFactor, k) * (1 - traficFactor);
+            break;
 
         case 2:
-            result = ((traficFactor ^ k) / this.rFact(k)) * (k / (k - traficFactor)) * (1 - traficFactor);
-        break;
+            if (k <= employees) {
+                result = (Math.pow(traficFactor, k) / this.rFact(k)) * P0;
+            } else {
+                result = (Math.pow(traficFactor, k) / (Math.pow(employees, k - employees) * this.rFact(employees))) * P0;
+            }
+            break;
+
+        case 3:
+            if (k <= employees) {
+                result = (Math.pow(traficFactor, k) / this.rFact(k)) * P0;
+            } else {
+                result = (Math.pow(traficFactor, k) / (Math.pow(employees, k - employees) * this.rFact(employees))) * P0;
+            }
+            break;
+
+        default:
+            result = Math.pow(traficFactor, k) * (1 - traficFactor);
+            break;
     }
     return result;
   },
@@ -203,17 +231,23 @@ export default{
     let lambda = this.getLambda(hour);
     let traficFactor = lambda / mu;
     let result = 0;
+    let P0 = this.getProbabilityOfNoUnits(hour, employees, mu);
+
     switch(employees){
-        default:
-            result = (lambda ^ 2) / (mu * (mu - lambda));
+        case 1:
+            result = Math.pow(lambda, 2) / (mu * (mu - lambda));
             break;
 
         case 2:
-            result = ((traficFactor ^ (employees + 1)) / (((employees - 1) * employees) * ((employees - traficFactor)^2))) * (1 - traficFactor);
+            result = (Math.pow(traficFactor, employees + 1) / (this.rFact(employees - 1) * Math.pow(employees - traficFactor, 2))) * P0;
             break;
 
         case 3:
-            result = ((traficFactor ^ (employees + 1)) / (((employees - 1) * (employees - 2) * employees) * ((employees - traficFactor)^2))) * (1 - traficFactor);
+            result = (Math.pow(traficFactor, employees + 1) / (this.rFact(employees - 1) * Math.pow(employees - traficFactor, 2))) * P0;
+            break;
+
+        default:
+            result = Math.pow(lambda, 2) / (mu * (mu - lambda));
             break;
     }
     return result;
@@ -226,7 +260,7 @@ export default{
     if(employees == 1){
         result = lambda / (mu - lambda);
     }else{
-        result = (getAverageOfUnitsOnQueue(hour, employees, mu)) + traficFactor;
+        result = this.getAverageOfUnitsOnQueue(hour, employees, mu) + traficFactor;
     }
     return result;
   },
@@ -235,9 +269,9 @@ export default{
     let lambda = this.getLambda(hour);
     let result = 0;
     if(employees == 1){
-        result = lambda / (mu * (mu - lambda))
+        result = lambda / (mu * (mu - lambda));
     }else{
-        result = (getAverageOfUnitsOnQueue(hour, employees, mu) / lambda);
+        result = this.getAverageOfUnitsOnQueue(hour, employees, mu) / lambda;
     }
     return result;
   },
@@ -248,9 +282,51 @@ export default{
     if(employees == 1){
         result = 1 / (mu - lambda);
     }else{
-        result = (getAverageOfUnitsOnSystem(hour, employees, mu) / lambda);
+        result = this.getAverageOfUnitsOnSystem(hour, employees, mu) / lambda;
     }
     return result;
+  },
+
+  getRecommendedEmployees(hour, mu, maxWaitTime = 5){
+    let lambda = this.getLambda(hour);
+
+    for(let employees = 1; employees <= 3; employees++){
+      let avgWaitTime = this.getAverageTimeOfWaitingOnQueue(hour, employees, mu);
+      let probWaiting = this.getProbabilityOfWaiting(hour, employees, mu);
+      let utilizationRate = (lambda / (employees * mu));
+
+      if(avgWaitTime <= maxWaitTime && utilizationRate < 0.85 && utilizationRate > 0.5){
+        return {
+          recommended: employees,
+          avgWaitTime: avgWaitTime.toFixed(2),
+          probWaiting: (probWaiting * 100).toFixed(2),
+          utilizationRate: (utilizationRate * 100).toFixed(2)
+        };
+      }
+    }
+
+    return {
+      recommended: 3,
+      avgWaitTime: this.getAverageTimeOfWaitingOnQueue(hour, 3, mu).toFixed(2),
+      probWaiting: (this.getProbabilityOfWaiting(hour, 3, mu) * 100).toFixed(2),
+      utilizationRate: ((lambda / (3 * mu)) * 100).toFixed(2)
+    };
+  },
+
+  getAllHoursAnalysis(mu){
+    const hours = ['18:00', '19:00', '20:00'];
+    return hours.map(hour => {
+      let lambda = this.getLambda(hour);
+      let salesCount = this.getSalesByHour(hour).length;
+      let recommendation = this.getRecommendedEmployees(hour, mu);
+
+      return {
+        hour,
+        salesCount,
+        lambda: lambda.toFixed(3),
+        ...recommendation
+      };
+    });
   }
 
 }
