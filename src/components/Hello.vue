@@ -1,142 +1,286 @@
 <template>
-  <div class="container">
-    <h1 class="app-title">FoodTruck Staffing Calculator</h1>
-
-    <b-card class="recommendation-card mb-4" v-if="showRecommendation">
-      <h3 class="recommendation-title">AI Recommendation</h3>
-      <div class="recommendation-highlight">
-        <div class="big-number">{{ recommendation.recommended }}</div>
-        <div class="recommendation-text">Recommended Employees</div>
+  <div class="foodtruck-app">
+    <!-- Header -->
+    <nav class="nav-wrapper gradient-bg">
+      <div class="container">
+        <a href="#" class="brand-logo center">FoodTruck Staffing Calculator</a>
       </div>
-      <div class="metrics-grid">
-        <div class="metric-item">
-          <div class="metric-label">Utilization Rate</div>
-          <div class="metric-value">{{ recommendation.utilizationRate }}%</div>
-        </div>
-        <div class="metric-item">
-          <div class="metric-label">Avg Wait Time</div>
-          <div class="metric-value">{{ recommendation.avgWaitTime }} min</div>
-        </div>
-        <div class="metric-item">
-          <div class="metric-label">Probability of Waiting</div>
-          <div class="metric-value">{{ recommendation.probWaiting }}%</div>
-        </div>
-      </div>
-    </b-card>
+    </nav>
 
-    <b-card class="input-card">
-      <b-form v-if="show">
-        <b-row>
-          <b-col md="6">
-            <b-form-group label="Service Rate (μ - customers/min):" label-for="muInput">
-              <b-form-input
-                id="muInput"
-                type="number"
-                step="0.01"
-                v-model.number="mu"
-                @input="calculateResults"
-                placeholder="0.30">
-              </b-form-input>
-              <small class="text-muted">How many customers can one employee serve per minute</small>
-            </b-form-group>
-          </b-col>
-          <b-col md="6">
-            <b-form-group label="Number of Employees:" label-for="employeeInput">
-              <b-form-select
-                id="employeeInput"
-                :options="employees"
-                v-model="form.employee"
-                @change="calculateResults">
-              </b-form-select>
-            </b-form-group>
-          </b-col>
-        </b-row>
-
-        <b-form-group label="Time Slot:" label-for="hourInput">
-          <b-form-select
-            id="hourInput"
-            :options="hours"
-            v-model="form.hour"
-            @change="calculateResults">
-          </b-form-select>
-        </b-form-group>
-
-        <b-button variant="primary" @click="calculateResults" block class="mb-3">
-          Calculate Metrics
-        </b-button>
-      </b-form>
-    </b-card>
-
-    <b-card class="results-card" v-if="showResults">
-      <h3>Queue Analysis Results</h3>
-      <div class="results-grid">
-        <div class="result-item">
-          <div class="result-label">Customer Arrival Rate (λ)</div>
-          <div class="result-value">{{ results.lambda }} customers/min</div>
-          <small class="text-muted">{{ results.salesCount }} customers in the hour</small>
-        </div>
-
-        <div class="result-item">
-          <div class="result-label">Traffic Intensity (ρ)</div>
-          <div class="result-value">{{ results.trafficIntensity }}</div>
-          <div :class="getTrafficClass(results.trafficIntensity)">
-            {{ getTrafficStatus(results.trafficIntensity) }}
+    <div class="container main-content">
+      <!-- AI Recommendation Card -->
+      <div class="row" v-if="showRecommendation">
+        <div class="col s12">
+          <div class="card recommendation-card z-depth-3">
+            <div class="card-content white-text">
+              <span class="card-title center-align">
+                <i class="material-icons medium">psychology</i>
+                AI Recommendation
+              </span>
+              <div class="recommendation-highlight center-align">
+                <div class="big-number">{{ recommendation.recommended }}</div>
+                <p class="recommendation-text">Recommended Employees</p>
+              </div>
+              <div class="row metrics-grid">
+                <div class="col s12 m4">
+                  <div class="metric-card">
+                    <p class="metric-label">Utilization Rate</p>
+                    <h5 class="metric-value">{{ recommendation.utilizationRate }}%</h5>
+                  </div>
+                </div>
+                <div class="col s12 m4">
+                  <div class="metric-card">
+                    <p class="metric-label">Avg Wait Time</p>
+                    <h5 class="metric-value">{{ recommendation.avgWaitTime }} min</h5>
+                  </div>
+                </div>
+                <div class="col s12 m4">
+                  <div class="metric-card">
+                    <p class="metric-label">Wait Probability</p>
+                    <h5 class="metric-value">{{ recommendation.probWaiting }}%</h5>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
+      </div>
 
-        <div class="result-item">
-          <div class="result-label">Probability of Waiting</div>
-          <div class="result-value">{{ results.probWaiting }}%</div>
-        </div>
-
-        <div class="result-item">
-          <div class="result-label">Probability System is Empty</div>
-          <div class="result-value">{{ results.probNoUnits }}%</div>
-        </div>
-
-        <div class="result-item">
-          <div class="result-label">Avg Customers in Queue</div>
-          <div class="result-value">{{ results.avgUnitsOnQueue }}</div>
-        </div>
-
-        <div class="result-item">
-          <div class="result-label">Avg Customers in System</div>
-          <div class="result-value">{{ results.avgUnitsOnSystem }}</div>
-        </div>
-
-        <div class="result-item">
-          <div class="result-label">Avg Wait Time (Queue)</div>
-          <div class="result-value">{{ results.avgTimeWaitingOnQueue }} min</div>
-        </div>
-
-        <div class="result-item">
-          <div class="result-label">Avg Wait Time (Total)</div>
-          <div class="result-value">{{ results.avgTimeWaitingOnSystem }} min</div>
+      <!-- Input Form Card -->
+      <div class="row">
+        <div class="col s12">
+          <div class="card z-depth-2">
+            <div class="card-content">
+              <span class="card-title">
+                <i class="material-icons left">settings</i>
+                Configuration
+              </span>
+              <div class="row">
+                <div class="input-field col s12 m6">
+                  <i class="material-icons prefix">speed</i>
+                  <input
+                    id="mu-input"
+                    type="number"
+                    step="0.01"
+                    v-model.number="mu"
+                    @input="calculateResults">
+                  <label for="mu-input" class="active">Service Rate (μ - customers/min)</label>
+                  <span class="helper-text">How many customers can one employee serve per minute</span>
+                </div>
+                <div class="input-field col s12 m6">
+                  <i class="material-icons prefix">people</i>
+                  <select
+                    id="employee-select"
+                    v-model="form.employee"
+                    @change="calculateResults"
+                    class="browser-default">
+                    <option value="" disabled>Select number of employees</option>
+                    <option value="1">1 Employee</option>
+                    <option value="2">2 Employees</option>
+                    <option value="3">3 Employees</option>
+                  </select>
+                  <label for="employee-select" class="active">Number of Employees</label>
+                </div>
+              </div>
+              <div class="row">
+                <div class="input-field col s12">
+                  <i class="material-icons prefix">schedule</i>
+                  <select
+                    id="hour-select"
+                    v-model="form.hour"
+                    @change="calculateResults"
+                    class="browser-default">
+                    <option value="" disabled>Select time slot</option>
+                    <option value="18:00">18:00 (6 PM)</option>
+                    <option value="19:00">19:00 (7 PM)</option>
+                    <option value="20:00">20:00 (8 PM)</option>
+                  </select>
+                  <label for="hour-select" class="active">Time Slot</label>
+                </div>
+              </div>
+              <div class="row center-align">
+                <button
+                  class="btn-large waves-effect waves-light gradient-bg"
+                  @click="calculateResults">
+                  <i class="material-icons left">calculate</i>
+                  Calculate Metrics
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </b-card>
 
-    <b-card class="all-hours-card mt-4">
-      <h3>All Time Slots Analysis</h3>
-      <b-button variant="info" @click="showAllHours" block>
-        View Recommendations for All Hours
-      </b-button>
+      <!-- Results Card -->
+      <div class="row" v-if="showResults">
+        <div class="col s12">
+          <div class="card z-depth-2">
+            <div class="card-content">
+              <span class="card-title">
+                <i class="material-icons left">assessment</i>
+                Queue Analysis Results
+              </span>
+              <div class="row">
+                <!-- Customer Arrival Rate -->
+                <div class="col s12 m6 l3">
+                  <div class="result-card hoverable">
+                    <div class="result-icon teal lighten-2">
+                      <i class="material-icons">trending_up</i>
+                    </div>
+                    <p class="result-label">Arrival Rate (λ)</p>
+                    <h5 class="result-value">{{ results.lambda }}</h5>
+                    <p class="result-unit">customers/min</p>
+                    <p class="grey-text text-darken-1">{{ results.salesCount }} customers/hour</p>
+                  </div>
+                </div>
 
-      <div v-if="allHoursData.length > 0" class="mt-3">
-        <b-table striped hover :items="allHoursData" :fields="tableFields">
-          <template #cell(recommended)="data">
-            <b-badge variant="success" class="employee-badge">
-              {{ data.value }} Employee{{ data.value > 1 ? 's' : '' }}
-            </b-badge>
-          </template>
-          <template #cell(utilizationRate)="data">
-            <span :class="getUtilizationClass(data.value)">
-              {{ data.value }}%
-            </span>
-          </template>
-        </b-table>
+                <!-- Traffic Intensity -->
+                <div class="col s12 m6 l3">
+                  <div class="result-card hoverable">
+                    <div class="result-icon orange lighten-2">
+                      <i class="material-icons">traffic</i>
+                    </div>
+                    <p class="result-label">Traffic Intensity (ρ)</p>
+                    <h5 class="result-value">{{ results.trafficIntensity }}</h5>
+                    <p :class="getTrafficChipClass(results.trafficIntensity)" class="chip">
+                      {{ getTrafficStatus(results.trafficIntensity) }}
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Probability of Waiting -->
+                <div class="col s12 m6 l3">
+                  <div class="result-card hoverable">
+                    <div class="result-icon blue lighten-2">
+                      <i class="material-icons">hourglass_empty</i>
+                    </div>
+                    <p class="result-label">Wait Probability</p>
+                    <h5 class="result-value">{{ results.probWaiting }}%</h5>
+                  </div>
+                </div>
+
+                <!-- Probability System Empty -->
+                <div class="col s12 m6 l3">
+                  <div class="result-card hoverable">
+                    <div class="result-icon green lighten-2">
+                      <i class="material-icons">check_circle</i>
+                    </div>
+                    <p class="result-label">System Empty</p>
+                    <h5 class="result-value">{{ results.probNoUnits }}%</h5>
+                  </div>
+                </div>
+
+                <!-- Average in Queue -->
+                <div class="col s12 m6 l3">
+                  <div class="result-card hoverable">
+                    <div class="result-icon purple lighten-2">
+                      <i class="material-icons">queue</i>
+                    </div>
+                    <p class="result-label">Avg in Queue</p>
+                    <h5 class="result-value">{{ results.avgUnitsOnQueue }}</h5>
+                    <p class="result-unit">customers</p>
+                  </div>
+                </div>
+
+                <!-- Average in System -->
+                <div class="col s12 m6 l3">
+                  <div class="result-card hoverable">
+                    <div class="result-icon indigo lighten-2">
+                      <i class="material-icons">store</i>
+                    </div>
+                    <p class="result-label">Avg in System</p>
+                    <h5 class="result-value">{{ results.avgUnitsOnSystem }}</h5>
+                    <p class="result-unit">customers</p>
+                  </div>
+                </div>
+
+                <!-- Wait Time Queue -->
+                <div class="col s12 m6 l3">
+                  <div class="result-card hoverable">
+                    <div class="result-icon red lighten-2">
+                      <i class="material-icons">timer</i>
+                    </div>
+                    <p class="result-label">Wait Time (Queue)</p>
+                    <h5 class="result-value">{{ results.avgTimeWaitingOnQueue }}</h5>
+                    <p class="result-unit">minutes</p>
+                  </div>
+                </div>
+
+                <!-- Wait Time Total -->
+                <div class="col s12 m6 l3">
+                  <div class="result-card hoverable">
+                    <div class="result-icon pink lighten-2">
+                      <i class="material-icons">av_timer</i>
+                    </div>
+                    <p class="result-label">Wait Time (Total)</p>
+                    <h5 class="result-value">{{ results.avgTimeWaitingOnSystem }}</h5>
+                    <p class="result-unit">minutes</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </b-card>
+
+      <!-- All Hours Analysis -->
+      <div class="row">
+        <div class="col s12">
+          <div class="card z-depth-2">
+            <div class="card-content">
+              <span class="card-title">
+                <i class="material-icons left">table_chart</i>
+                All Time Slots Analysis
+              </span>
+              <div class="center-align">
+                <button
+                  class="btn waves-effect waves-light blue"
+                  @click="showAllHours">
+                  <i class="material-icons left">visibility</i>
+                  View All Hours
+                </button>
+              </div>
+
+              <div v-if="allHoursData.length > 0" class="table-container">
+                <table class="striped highlight responsive-table">
+                  <thead>
+                    <tr>
+                      <th>Time Slot</th>
+                      <th>Customers</th>
+                      <th>Arrival Rate (λ)</th>
+                      <th>Recommended Staff</th>
+                      <th>Utilization</th>
+                      <th>Avg Wait (min)</th>
+                      <th>Wait Probability</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="row in allHoursData" :key="row.hour">
+                      <td><strong>{{ row.hour }}</strong></td>
+                      <td>{{ row.salesCount }}</td>
+                      <td>{{ row.lambda }}</td>
+                      <td>
+                        <span class="chip green white-text">
+                          <i class="material-icons tiny">person</i>
+                          {{ row.recommended }} Employee{{ row.recommended > 1 ? 's' : '' }}
+                        </span>
+                      </td>
+                      <td>
+                        <span :class="getUtilizationChipClass(row.utilizationRate)" class="chip">
+                          {{ row.utilizationRate }}%
+                        </span>
+                      </td>
+                      <td>{{ row.avgWaitTime }}</td>
+                      <td>{{ row.probWaiting }}%</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -148,8 +292,8 @@ export default {
     return {
       mu: 0.30,
       form: {
-        hour: null,
-        employee: null
+        hour: '',
+        employee: ''
       },
       results: {
         lambda: '',
@@ -169,28 +313,6 @@ export default {
         utilizationRate: 0
       },
       allHoursData: [],
-      employees: [
-        { text: 'Select number of employees', value: null },
-        { text: '1 Employee', value: 1 },
-        { text: '2 Employees', value: 2 },
-        { text: '3 Employees', value: 3 }
-      ],
-      hours: [
-        { text: 'Select time slot', value: null },
-        { text: '18:00 (6 PM)', value: '18:00' },
-        { text: '19:00 (7 PM)', value: '19:00' },
-        { text: '20:00 (8 PM)', value: '20:00' }
-      ],
-      tableFields: [
-        { key: 'hour', label: 'Time Slot' },
-        { key: 'salesCount', label: 'Customers' },
-        { key: 'lambda', label: 'Arrival Rate (λ)' },
-        { key: 'recommended', label: 'Recommended Staff' },
-        { key: 'utilizationRate', label: 'Utilization' },
-        { key: 'avgWaitTime', label: 'Avg Wait (min)' },
-        { key: 'probWaiting', label: 'Wait Probability' }
-      ],
-      show: true,
       showResults: false,
       showRecommendation: false
     };
@@ -226,11 +348,11 @@ export default {
     showAllHours() {
       this.allHoursData = salesService.getAllHoursAnalysis(this.mu);
     },
-    getTrafficClass(intensity) {
+    getTrafficChipClass(intensity) {
       const value = parseFloat(intensity);
-      if (value < 0.5) return 'text-success font-weight-bold';
-      if (value < 0.85) return 'text-warning font-weight-bold';
-      return 'text-danger font-weight-bold';
+      if (value < 0.5) return 'green white-text';
+      if (value < 0.85) return 'orange white-text';
+      return 'red white-text';
     },
     getTrafficStatus(intensity) {
       const value = parseFloat(intensity);
@@ -238,184 +360,247 @@ export default {
       if (value < 0.85) return 'Optimal';
       return 'Overutilized!';
     },
-    getUtilizationClass(rate) {
+    getUtilizationChipClass(rate) {
       const value = parseFloat(rate);
-      if (value < 50) return 'text-info';
-      if (value < 85) return 'text-success font-weight-bold';
-      return 'text-danger font-weight-bold';
+      if (value < 50) return 'blue white-text';
+      if (value < 85) return 'green white-text';
+      return 'red white-text';
     }
   },
   mounted() {
     this.form.hour = '18:00';
-    this.form.employee = 1;
+    this.form.employee = '1';
     this.calculateResults();
+
+    // Initialize Materialize components
+    if (window.M) {
+      window.M.AutoInit();
+    }
   }
 };
 </script>
 
 <style scoped>
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+
+.foodtruck-app {
+  min-height: 100vh;
+  background: #f5f5f5;
 }
 
-.app-title {
-  text-align: center;
-  color: #2c3e50;
-  margin-bottom: 30px;
-  font-size: 2.5rem;
-  font-weight: bold;
+.gradient-bg {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%) !important;
 }
 
+.nav-wrapper {
+  padding: 0 20px;
+}
+
+.brand-logo {
+  font-size: 1.8rem !important;
+  font-weight: 600;
+}
+
+.main-content {
+  margin-top: 30px;
+  margin-bottom: 40px;
+}
+
+/* Recommendation Card */
 .recommendation-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-}
-
-.recommendation-title {
-  text-align: center;
-  margin-bottom: 20px;
-  font-size: 1.8rem;
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  border-radius: 8px;
+  margin-bottom: 30px;
 }
 
 .recommendation-highlight {
-  text-align: center;
-  margin: 30px 0;
+  padding: 20px 0;
 }
 
 .big-number {
-  font-size: 5rem;
+  font-size: 6rem;
   font-weight: bold;
   line-height: 1;
+  margin: 20px 0 10px;
 }
 
 .recommendation-text {
-  font-size: 1.3rem;
-  margin-top: 10px;
+  font-size: 1.5rem;
+  margin: 10px 0;
   opacity: 0.95;
 }
 
 .metrics-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
   margin-top: 30px;
 }
 
-.metric-item {
+.metric-card {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 20px;
   text-align: center;
-  padding: 15px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
   backdrop-filter: blur(10px);
+  margin: 10px 0;
 }
 
 .metric-label {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   opacity: 0.9;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
 }
 
 .metric-value {
-  font-size: 1.8rem;
+  font-size: 2rem;
   font-weight: bold;
+  margin: 10px 0;
 }
 
-.input-card {
-  margin-bottom: 20px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+/* Input Form */
+.card-title {
+  font-weight: 600 !important;
+  font-size: 1.8rem !important;
 }
 
-.results-card {
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+.card-title i {
+  vertical-align: middle;
 }
 
-.results-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-  margin-top: 20px;
+.input-field label {
+  font-size: 1rem;
 }
 
-.result-item {
+.helper-text {
+  font-size: 0.85rem;
+}
+
+select.browser-default {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid #9e9e9e;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+select.browser-default:focus {
+  outline: none;
+  border-color: #e74c3c;
+}
+
+/* Result Cards */
+.result-card {
+  background: white;
+  border-radius: 12px;
   padding: 20px;
-  border: 2px solid #e0e0e0;
-  border-radius: 10px;
+  text-align: center;
   transition: all 0.3s ease;
+  margin: 10px 0;
+  border: 2px solid #f0f0f0;
 }
 
-.result-item:hover {
-  border-color: #667eea;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
-  transform: translateY(-2px);
+.result-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  border-color: #e74c3c;
+}
+
+.result-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  margin: 0 auto 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.result-icon i {
+  font-size: 2rem;
+  color: white;
 }
 
 .result-label {
   font-size: 0.9rem;
-  color: #666;
-  margin-bottom: 8px;
+  color: #757575;
+  margin: 10px 0 5px;
   font-weight: 500;
 }
 
 .result-value {
-  font-size: 1.8rem;
+  font-size: 2.2rem;
   font-weight: bold;
-  color: #2c3e50;
+  color: #212121;
+  margin: 10px 0;
 }
 
-.all-hours-card {
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+.result-unit {
+  font-size: 0.85rem;
+  color: #9e9e9e;
+  margin: 5px 0;
 }
 
-.employee-badge {
-  font-size: 1rem;
-  padding: 8px 12px;
+/* Table */
+.table-container {
+  margin-top: 30px;
+  overflow-x: auto;
 }
 
-h3 {
-  color: #2c3e50;
-  margin-bottom: 20px;
+table.striped tbody tr:nth-child(odd) {
+  background-color: #f9f9f9;
+}
+
+table thead {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+}
+
+table thead tr th {
+  color: white;
   font-weight: 600;
 }
 
-.text-success {
-  color: #28a745 !important;
+table tbody tr:hover {
+  background-color: #e3f2fd;
 }
 
-.text-warning {
-  color: #ffc107 !important;
+.chip {
+  font-weight: 600;
+  font-size: 0.9rem;
 }
 
-.text-danger {
-  color: #dc3545 !important;
+.chip i.tiny {
+  font-size: 1rem;
+  margin-right: 5px;
 }
 
-.text-info {
-  color: #17a2b8 !important;
+/* Buttons */
+.btn, .btn-large {
+  border-radius: 25px;
+  text-transform: none;
+  font-weight: 600;
+  letter-spacing: 0.5px;
 }
 
-.font-weight-bold {
-  font-weight: bold;
-}
-
-@media (max-width: 768px) {
-  .app-title {
-    font-size: 1.8rem;
+/* Responsive */
+@media only screen and (max-width: 600px) {
+  .brand-logo {
+    font-size: 1.2rem !important;
   }
 
   .big-number {
-    font-size: 3.5rem;
+    font-size: 4rem;
   }
 
-  .results-grid {
-    grid-template-columns: 1fr;
+  .recommendation-text {
+    font-size: 1.2rem;
   }
 
-  .metrics-grid {
-    grid-template-columns: 1fr;
+  .result-value {
+    font-size: 1.8rem;
+  }
+}
+
+@media only screen and (max-width: 992px) {
+  .result-card {
+    margin-bottom: 20px;
   }
 }
 </style>
