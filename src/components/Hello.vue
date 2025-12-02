@@ -280,6 +280,82 @@
           </div>
         </div>
       </div>
+
+      <!-- Sales History Management -->
+      <div class="row">
+        <div class="col s12">
+          <div class="card z-depth-2">
+            <div class="card-content">
+              <span class="card-title">
+                <i class="material-icons left">history</i>
+                Sales History
+              </span>
+              <div class="center-align">
+                <button
+                  class="btn waves-effect waves-light gradient-bg"
+                  @click="openAddSaleModal">
+                  <i class="material-icons left">add</i>
+                  Add New Sale
+                </button>
+              </div>
+
+              <div class="table-container">
+                <table class="striped highlight responsive-table">
+                  <thead>
+                    <tr>
+                      <th>Sale ID</th>
+                      <th>Hour</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="sale in salesList" :key="sale.saleId">
+                      <td><strong>{{ sale.saleId }}</strong></td>
+                      <td>{{ sale.hour }}</td>
+                      <td>
+                        <button
+                          class="btn-small waves-effect waves-light red"
+                          @click="deleteSale(sale.saleId)">
+                          <i class="material-icons">delete</i>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Sale Modal -->
+    <div id="addSaleModal" class="modal">
+      <div class="modal-content">
+        <h4>
+          <i class="material-icons left">add_circle</i>
+          Add New Sale
+        </h4>
+        <div class="row">
+          <div class="input-field col s12">
+            <select v-model="newSaleHour" class="browser-default">
+              <option value="" disabled>Select hour for new sale</option>
+              <option value="18:00">18:00 (6 PM)</option>
+              <option value="19:00">19:00 (7 PM)</option>
+              <option value="20:00">20:00 (8 PM)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-close btn-flat waves-effect">Cancel</button>
+        <button
+          class="btn waves-effect waves-light gradient-bg"
+          @click="addSale">
+          <i class="material-icons left">save</i>
+          Add Sale
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -314,7 +390,10 @@ export default {
       },
       allHoursData: [],
       showResults: false,
-      showRecommendation: false
+      showRecommendation: false,
+      salesList: [],
+      newSaleHour: '',
+      modalInstance: null
     };
   },
   methods: {
@@ -365,16 +444,65 @@ export default {
       if (value < 50) return 'blue white-text';
       if (value < 85) return 'green white-text';
       return 'red white-text';
+    },
+    loadSalesList() {
+      this.salesList = salesService.getSales();
+    },
+    openAddSaleModal() {
+      this.newSaleHour = '';
+      if (this.modalInstance) {
+        this.modalInstance.open();
+      }
+    },
+    addSale() {
+      if (this.newSaleHour) {
+        salesService.addSale(this.newSaleHour);
+        this.loadSalesList();
+        this.calculateResults();
+        if (this.modalInstance) {
+          this.modalInstance.close();
+        }
+        if (window.M && window.M.toast) {
+          window.M.toast({html: 'Sale added successfully!', classes: 'green'});
+        }
+      } else {
+        if (window.M && window.M.toast) {
+          window.M.toast({html: 'Please select an hour', classes: 'red'});
+        }
+      }
+    },
+    deleteSale(saleId) {
+      if (confirm('Are you sure you want to delete this sale?')) {
+        const success = salesService.deleteSale(saleId);
+        if (success) {
+          this.loadSalesList();
+          this.calculateResults();
+          if (window.M && window.M.toast) {
+            window.M.toast({html: 'Sale deleted successfully!', classes: 'green'});
+          }
+        } else {
+          if (window.M && window.M.toast) {
+            window.M.toast({html: 'Failed to delete sale', classes: 'red'});
+          }
+        }
+      }
     }
   },
   mounted() {
     this.form.hour = '18:00';
     this.form.employee = '1';
+    this.loadSalesList();
     this.calculateResults();
 
     // Initialize Materialize components
     if (window.M) {
       window.M.AutoInit();
+
+      // Initialize modal
+      const modalElem = document.getElementById('addSaleModal');
+      if (modalElem) {
+        this.modalInstance = window.M.Modal.init(modalElem, {});
+      }
     }
   }
 };
@@ -577,6 +705,36 @@ table tbody tr:hover {
   text-transform: none;
   font-weight: 600;
   letter-spacing: 0.5px;
+}
+
+.btn-small {
+  border-radius: 20px;
+  padding: 0 15px;
+}
+
+.btn-small i {
+  font-size: 1.2rem;
+}
+
+/* Modal */
+.modal {
+  border-radius: 8px;
+  max-width: 500px;
+}
+
+.modal h4 {
+  color: #e74c3c;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+}
+
+.modal h4 i {
+  margin-right: 10px;
+}
+
+.modal-footer {
+  background-color: #f5f5f5;
 }
 
 /* Responsive */

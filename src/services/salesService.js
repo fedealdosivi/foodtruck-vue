@@ -1,4 +1,4 @@
-const sales=[
+let sales=[
     {
         "saleId": 1,
         "hour": "18:00"
@@ -327,6 +327,25 @@ export default{
         ...recommendation
       };
     });
+  },
+
+  addSale(hour){
+    const newSaleId = sales.length > 0 ? Math.max(...sales.map(s => s.saleId)) + 1 : 1;
+    const newSale = {
+      saleId: newSaleId,
+      hour: hour
+    };
+    sales.push(newSale);
+    return newSale;
+  },
+
+  deleteSale(saleId){
+    const index = sales.findIndex(s => s.saleId === saleId);
+    if(index !== -1){
+      sales.splice(index, 1);
+      return true;
+    }
+    return false;
   }
 
 }
