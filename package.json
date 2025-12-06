@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "dev": "node build/dev-server.js",
-    "start": "node build/dev-server.js",
+    "start": "node server.js",
     "build": "node build/build.js",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -15,6 +15,7 @@
   "dependencies": {
     "bootstrap": "^4.0.0-beta.2",
     "bootstrap-vue": "latest",
+    "express": "^4.14.1",
     "materialize-css": "^1.0.0",
     "popper.js": "^1.12.9",
     "vue": "^2.5.2",
